@@ -1,4 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:developer';
+import 'package:html/parser.dart' show parse;
 import 'package:flutter/material.dart';
+import './logic/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +37,8 @@ class _LoginPageState extends State<LoginPage> {
   bool isButtonEnabled = true;
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  String req = "";
+  Map Edt = {};
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                         ElevatedButton.icon(
                           onPressed: !isButtonEnabled
                               ? null
-                              : () => _loginButtonAction(),
+                              : () async => _loginButtonAction(req),
                           icon: const Icon(Icons.login),
                           label: const Text('Se connecter'),
                         ),
@@ -140,14 +147,65 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _loginButtonAction() {
+  void _loginButtonAction(req) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         isButtonEnabled = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing Data')),
-      );
+
+      showModalBottomSheet(
+          isDismissible: false,
+          isScrollControlled: false,
+          context: context,
+          builder: ((context) => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    child: Text(
+                      'Connexion à votre emploi du temps',
+                      style: TextStyle(color: Colors.deepPurple, fontSize: 15),
+                    ),
+                  ),
+                  CircularProgressIndicator(),
+                ],
+              )));
+
+      req =
+          await loginRequest(usernameController.text, passwordController.text);
+
+      if (req['success']) {
+        setState(() {
+          isButtonEnabled = true;
+        });
+
+        var htmlresponse = parse(req['body']);
+
+        if (!(htmlresponse.getElementById('num_semaine') == null)) {
+          // here we have to get the time schedule
+          // first, we get all the weeks available in the html document
+
+          Edt['weeks'] = htmlresponse.getElementsByTagName('option');
+
+          Navigator.pop(context);
+        } else {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                backgroundColor: Colors.redAccent,
+                content:
+                    Text('Votre identifiant ou mot de passe est incorrect.')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: Colors.redAccent,
+              content: Text(
+                  'Une erreur est survenue, veuillez vérifier votre connexion internet.')),
+        );
+      }
     }
   }
 
