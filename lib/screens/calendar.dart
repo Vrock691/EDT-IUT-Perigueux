@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
+
 import 'package:flutter/material.dart';
 import 'package:sattelysreader/logic/getEdt.dart';
+import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:calendar_view/calendar_view.dart';
 
@@ -29,10 +32,45 @@ class CalendarViewStateful extends StatefulWidget {
 }
 
 class CalendarViewStatefulState extends State<CalendarViewStateful> {
-  var ViewType = 'Day';
+  bool ViewTypeIsWeek = true;
+  var WeekLoaded = [];
 
   @override
   Widget build(BuildContext context) {
+    final TODO = widget.todo;
+    String PHPSESSID = TODO['PHPSESSID'].toString();
+
+    Widget calendar() {
+      if (ViewTypeIsWeek) {
+        return WeekView(
+          onPageChange: (date, page) async {
+            var weeknum = getWeekNumber(date);
+
+            if (!WeekLoaded.contains(weeknum)) {
+              var WeekScheduleRequest =
+                  await getWeekSchedule(PHPSESSID, weeknum);
+
+              if (WeekScheduleRequest?['success']) {
+              } else {
+                if (WeekScheduleRequest?['code'] == 'disconnected') {
+                  // re login
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        backgroundColor: Colors.redAccent,
+                        content:
+                            Text(WeekScheduleRequest?['message'])),
+                  );
+                }
+              }
+            }
+          },
+        );
+      } else {
+        return DayView();
+      }
+    }
+
     return CalendarControllerProvider(
       controller: EventController(),
       child: Scaffold(
@@ -41,48 +79,95 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
             'Votre emploi du temps',
             style: TextStyle(color: Colors.deepPurple),
           ),
+          actions: [
+            IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.today,
+                  color: Colors.deepPurple,
+                ))
+          ],
         ),
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
-            children: const <Widget>[
+            children: <Widget>[
               DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
+                decoration: const BoxDecoration(
+                  color: Colors.deepPurple,
                 ),
-                child: Text(
-                  'Drawer Header',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Bienvenue sur votre emploi du temps',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(4)),
+                    Text('IUT Périgueux',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ))
+                  ],
                 ),
               ),
-              ListTile(
-                leading: Icon(Icons.message),
-                title: Text('Messages'),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Text('Vue'),
               ),
               ListTile(
-                leading: Icon(Icons.account_circle),
-                title: Text('Profile'),
+                selected: !ViewTypeIsWeek,
+                leading: const Icon(Icons.calendar_view_day),
+                title: const Text('Jour'),
+                onTap: () {
+                  setState(() {
+                    ViewTypeIsWeek = false;
+                  });
+                  Navigator.pop(context);
+                },
               ),
               ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
+                selected: ViewTypeIsWeek,
+                leading: const Icon(Icons.calendar_view_week),
+                title: const Text('Semaine'),
+                onTap: () {
+                  setState(() {
+                    ViewTypeIsWeek = true;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Text("Plus d'options"),
+              ),
+              ListTile(
+                leading: const Icon(Icons.refresh),
+                title: const Text("Actualiser"),
+                onTap: (() {}),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Paramètres'),
+                onTap: () {},
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Text("Compte"),
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text("Se deconnecter"),
+                onTap: (() {}),
               ),
             ],
           ),
         ),
-        body: Calendar(),
+        body: calendar(),
       ),
     );
-  }
-
-  Widget Calendar() {
-    if (ViewType == 'Week') {
-      return WeekView();
-    } else {
-      return DayView();
-    }
   }
 }

@@ -10,7 +10,11 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
       {'aim': '', 'mode': '', 'num_semaine': weekNumber}, PHPSESSID);
 
   if (rep['statusCode'] != 200 || rep['success'] == false) {
-    return {'success': false, 'message': "Connexion au serveur impossible."};
+    return {
+      'success': false,
+      'message': "Connexion au serveur impossible.",
+      'code': 'server_lost'
+    };
   }
 
   if (rep['success'] == true) {

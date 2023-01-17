@@ -5,6 +5,7 @@ import 'dart:ffi';
 import 'package:html/parser.dart' show parse;
 import 'package:flutter/material.dart';
 import 'package:sattelysreader/logic/getEdt.dart';
+import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:sattelysreader/screens/calendar.dart';
 
@@ -195,15 +196,8 @@ class _LoginPageState extends State<LoginPage> {
           is on the list, if yes, we get the schedule for it, if not, we get 
           the first week available */
 
-        int weeksBetween(DateTime from, DateTime to) {
-          from = DateTime.utc(from.year, from.month, from.day);
-          to = DateTime.utc(to.year, to.month, to.day);
-          return (to.difference(from).inDays / 7).ceil();
-        }
-
         var now = DateTime.now();
-        var firstJan = DateTime(now.year, 1, 1);
-        var weekNumber = weeksBetween(firstJan, now);
+        var weekNumber = getWeekNumber(now);
         var reqEdt;
 
         if (Edt['weeks'].indexOf(weekNumber.toString) != null) {
@@ -219,6 +213,7 @@ class _LoginPageState extends State<LoginPage> {
             next window with the calendar */
 
           Edt['schedule'] = reqEdt['schedule'];
+          Edt['PHPSESSID'] = PHPSESSID;
 
           Navigator.pushAndRemoveUntil(
               context,
@@ -237,9 +232,7 @@ class _LoginPageState extends State<LoginPage> {
             isButtonEnabled = true;
           });
           Navigator.pop(context);
-
         }
-
       } else {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
