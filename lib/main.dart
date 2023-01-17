@@ -6,9 +6,15 @@ import 'package:html/parser.dart' show parse;
 import 'package:flutter/material.dart';
 import 'package:sattelysreader/logic/getEdt.dart';
 import 'package:sattelysreader/logic/login.dart';
+import 'package:sattelysreader/screens/calendar.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+class Todo {
+  final Map<dynamic, dynamic> EDT;
+  const Todo(this.EDT);
 }
 
 class MyApp extends StatelessWidget {
@@ -198,17 +204,42 @@ class _LoginPageState extends State<LoginPage> {
         var now = DateTime.now();
         var firstJan = DateTime(now.year, 1, 1);
         var weekNumber = weeksBetween(firstJan, now);
+        var reqEdt;
 
         if (Edt['weeks'].indexOf(weekNumber.toString) != null) {
           // the week is available, we get the schedule for it
-          var reqEdt = await getWeekSchedule(PHPSESSID, weekNumber);
+          reqEdt = await getWeekSchedule(PHPSESSID, weekNumber);
         } else {
           // we get the first week available
-          var reqEdt =
-              await getWeekSchedule(PHPSESSID, Edt['weeks'][0].toString());
+          reqEdt = await getWeekSchedule(PHPSESSID, Edt['weeks'][0].toString());
         }
 
-        Navigator.pop(context);
+        if (reqEdt?['success']) {
+          /* We finnaly have all the necessary informations to go to the 
+            next window with the calendar */
+
+          Edt['schedule'] = reqEdt['schedule'];
+
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CalendarView(
+                        todo: Edt,
+                      )),
+              ModalRoute.withName("/Home"));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                backgroundColor: Colors.redAccent,
+                content: Text(reqEdt?['message'])),
+          );
+          setState(() {
+            isButtonEnabled = true;
+          });
+          Navigator.pop(context);
+
+        }
+
       } else {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
