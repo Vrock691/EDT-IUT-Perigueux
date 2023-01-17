@@ -1,9 +1,11 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
 import 'dart:developer';
+import 'dart:ffi';
 import 'package:html/parser.dart' show parse;
 import 'package:flutter/material.dart';
-import './logic/login.dart';
+import 'package:sattelysreader/logic/getEdt.dart';
+import 'package:sattelysreader/logic/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -180,31 +182,43 @@ class _LoginPageState extends State<LoginPage> {
           isButtonEnabled = true;
         });
 
-        var htmlresponse = parse(req['body']);
+        final PHPSESSID = req['PHPSESSID'];
+        Edt['weeks'] = req['weekList'];
 
-        if (!(htmlresponse.getElementById('num_semaine') == null)) {
-          // here we have to get the time schedule
-          // first, we get all the weeks available in the html document
+        /* Now, we have all the weeks available, we check if the actual week
+          is on the list, if yes, we get the schedule for it, if not, we get 
+          the first week available */
 
-          Edt['weeks'] = htmlresponse.getElementsByTagName('option');
-
-          Navigator.pop(context);
-        } else {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                backgroundColor: Colors.redAccent,
-                content:
-                    Text('Votre identifiant ou mot de passe est incorrect.')),
-          );
+        int weeksBetween(DateTime from, DateTime to) {
+          from = DateTime.utc(from.year, from.month, from.day);
+          to = DateTime.utc(to.year, to.month, to.day);
+          return (to.difference(from).inDays / 7).ceil();
         }
+
+        var now = DateTime.now();
+        var firstJan = DateTime(now.year, 1, 1);
+        var weekNumber = weeksBetween(firstJan, now);
+
+        if (Edt['weeks'].indexOf(weekNumber.toString) != null) {
+          // the week is available, we get the schedule for it
+          var reqEdt = await getWeekSchedule(PHPSESSID, weekNumber);
+        } else {
+          // we get the first week available
+          var reqEdt =
+              await getWeekSchedule(PHPSESSID, Edt['weeks'][0].toString());
+        }
+
+        Navigator.pop(context);
       } else {
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
               backgroundColor: Colors.redAccent,
-              content: Text(
-                  'Une erreur est survenue, veuillez vérifier votre connexion internet.')),
+              content: Text(req['message'].toString())),
         );
+        setState(() {
+          isButtonEnabled = true;
+        });
       }
     }
   }

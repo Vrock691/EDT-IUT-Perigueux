@@ -1,3 +1,5 @@
+import 'package:html/parser.dart';
+
 import './request.dart';
 
 Future<Map<String, dynamic>?> loginRequest(login, password) async {
@@ -5,7 +7,7 @@ Future<Map<String, dynamic>?> loginRequest(login, password) async {
   var rep = await makeGetRequest("/");
 
   if (rep['success'] == false) {
-    return {'success': false, 'message': rep['e']};
+    return {'success': false, 'message': "Connexion au serveur impossible."};
   }
 
   // ignore: non_constant_identifier_names
@@ -20,19 +22,37 @@ Future<Map<String, dynamic>?> loginRequest(login, password) async {
       PHPSESSID);
 
   if (rep['statusCode'] != 200 || rep['success'] == false) {
-    return {
-      'success': false,
-      'message':
-          "Error ${rep['statusCode']}. Server connection is impossible or response is incomplete"
-    };
+    return {'success': false, 'message': "Connexion au serveur impossible."};
   }
 
   if (rep['success'] == true) {
-    return {
-      'body': rep['body'],
-      'headers': rep['headers'],
-      'success': true,
-    };
+    var html = parse(rep['body'].toString());
+
+    if (!(html.getElementById('num_semaine') == null)) {
+      // here we have to get the time schedule
+      // first, we get all the weeks available in the html document
+
+      final weekList = [];
+
+      for (var element in html.getElementsByTagName('option')) {
+        weekList.add(element.attributes['value']);
+      }
+
+      weekList.removeAt(0);
+
+      return {
+        'body': rep['body'],
+        'headers': rep['headers'],
+        'PHPSESSID': PHPSESSID,
+        'success': true,
+        'weekList': weekList,
+      };
+    } else {
+      return {
+        'success': false,
+        'message': "Votre identifiant ou mot de passe est incorrect."
+      };
+    }
   }
 
   return null;

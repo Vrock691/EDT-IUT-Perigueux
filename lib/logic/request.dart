@@ -6,8 +6,8 @@ makePostRequest(body, PHPSESSID) async {
   /* This part use a small for each to correctly encode the form data */
   var parts = [];
   body.forEach((key, value) {
-    parts.add('${Uri.encodeQueryComponent(key)}='
-        '${Uri.encodeQueryComponent(value)}');
+    parts.add('${Uri.encodeQueryComponent(key.toString())}='
+        '${Uri.encodeQueryComponent(value.toString())}');
   });
   var formData = parts.join('&');
 
