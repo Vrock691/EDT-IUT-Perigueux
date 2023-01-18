@@ -48,7 +48,15 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
             month,
             day,
           ).toString();
-          EDT[currentDayInTheLoop] = {'html': [], 'lessons': []};
+          EDT[currentDayInTheLoop] = {
+            'html': [],
+            'lessons': [],
+            'day': DateTime(
+              year,
+              month,
+              day,
+            )
+          };
           break;
         case 'atenu':
           EDT[currentDayInTheLoop]['html'].add(element);
@@ -80,11 +88,29 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
         switch (i) {
           case 0:
             i++;
-            start = element.innerHtml;
+            var hour = element.innerHtml
+                .toString()
+                .substring(0, element.innerHtml.toString().length - 2)
+                .replaceAll("h", '');
+            var minute = element.innerHtml
+                .toString()
+                .substring(element.innerHtml.toString().length - 2,
+                    element.innerHtml.toString().length)
+                .replaceAll("h", '');
+            start = [int.parse(hour), int.parse(minute)];
             break;
           case 1:
             i++;
-            end = element.innerHtml;
+            var hour = element.innerHtml
+                .toString()
+                .substring(0, element.innerHtml.toString().length - 2)
+                .replaceAll("h", '');
+            var minute = element.innerHtml
+                .toString()
+                .substring(element.innerHtml.toString().length - 2,
+                    element.innerHtml.toString().length)
+                .replaceAll("h", '');
+            end = [int.parse(hour), int.parse(minute)];
             break;
           case 2:
             i++;

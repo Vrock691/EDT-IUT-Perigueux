@@ -8,6 +8,7 @@ import 'package:sattelysreader/logic/getEdt.dart';
 import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:sattelysreader/screens/calendar.dart';
+import 'package:calendar_view/calendar_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,10 +24,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Sattelys Reader',
-      theme: ThemeData(primarySwatch: Colors.deepPurple, useMaterial3: true),
-      home: const LoginPage(title: 'Sattelys Reader'),
+    EventController controller = EventController();
+
+    return CalendarControllerProvider(
+      controller: controller,
+      child: MaterialApp(
+        title: 'Sattelys Reader',
+        theme: ThemeData(primarySwatch: Colors.deepPurple, useMaterial3: true),
+        home: const LoginPage(title: 'Sattelys Reader'),
+      ),
     );
   }
 }
@@ -53,8 +59,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Sattelys Reader',
+        title: Text(
+          widget.title,
           style: TextStyle(color: Colors.deepPurple),
         ),
         centerTitle: true,
@@ -189,6 +195,10 @@ class _LoginPageState extends State<LoginPage> {
           isButtonEnabled = true;
         });
 
+        Edt['credentials'] = {
+          'login': usernameController.text,
+          'password': passwordController.text
+        };
         final PHPSESSID = req['PHPSESSID'];
         Edt['weeks'] = req['weekList'];
 

@@ -38,136 +38,196 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
   @override
   Widget build(BuildContext context) {
     final TODO = widget.todo;
+    final credentials = TODO['credentials'];
+    EventController controller =
+        CalendarControllerProvider.of(context).controller;
     String PHPSESSID = TODO['PHPSESSID'].toString();
+    bool ReconnectionProcessIsRunning = false;
 
-    Widget calendar() {
-      if (ViewTypeIsWeek) {
-        return WeekView(
-          onPageChange: (date, page) async {
-            var weeknum = getWeekNumber(date);
+    void clearAllEvents() {}
 
-            if (!WeekLoaded.contains(weeknum)) {
-              var WeekScheduleRequest =
-                  await getWeekSchedule(PHPSESSID, weeknum);
+    void addElementToCalendar(Map schedule) {
+      // here add elements
 
-              if (WeekScheduleRequest?['success']) {
-              } else {
-                if (WeekScheduleRequest?['code'] == 'disconnected') {
-                  // re login
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        backgroundColor: Colors.redAccent,
-                        content:
-                            Text(WeekScheduleRequest?['message'])),
-                  );
-                }
-              }
-            }
-          },
+      schedule.forEach((key, value) {
+        for (var element in value['lessons']) {
+          DateTime DayOfEvent = value['day'];
+          final event = CalendarEventData(
+            title: element['name'],
+            date: DayOfEvent,
+            startTime: DayOfEvent.add(Duration(
+                hours: element['start'][0], minutes: element['start'][1])),
+            endTime: DayOfEvent.add(
+                Duration(hours: element['end'][0], minutes: element['end'][1])),
+            event: "Event 111",
+          );
+          CalendarControllerProvider.of(context).controller.add(event);
+        }
+      });
+    }
+
+    void Reconnect() async {
+      if (!ReconnectionProcessIsRunning) {
+        ReconnectionProcessIsRunning = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('Vous avez été déconnecté, reconnexion en cours...')),
         );
-      } else {
-        return DayView();
+        var req =
+            await loginRequest(credentials['login'], credentials['password']);
+
+        if (req?['success']) {
+          PHPSESSID = req?['PHPSESSID'];
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                backgroundColor: Colors.deepPurple,
+                content: Text(
+                    'De nouveau en ligne, chargement de votre emploi du temps.')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                backgroundColor: Colors.redAccent,
+                content: Text(
+                    'Erreur lors de la reconnexion, nouvel essai dans 30 secondes.')),
+          );
+          ReconnectionProcessIsRunning = false;
+          Reconnect();
+        }
       }
     }
 
-    return CalendarControllerProvider(
-      controller: EventController(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Votre emploi du temps',
-            style: TextStyle(color: Colors.deepPurple),
-          ),
-          actions: [
-            IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.today,
-                  color: Colors.deepPurple,
-                ))
-          ],
+    void PageChanged(date, page) async {
+      var weeknum = getWeekNumber(date);
+
+      if (!WeekLoaded.contains(weeknum) && !ReconnectionProcessIsRunning) {
+        var WeekScheduleRequest = await getWeekSchedule(PHPSESSID, weeknum);
+
+        if (WeekScheduleRequest?['success']) {
+          if (WeekScheduleRequest?['schedule'] != null) {
+            addElementToCalendar(WeekScheduleRequest?['schedule']);
+          }
+        } else {
+          if (WeekScheduleRequest?['code'] == 'disconnected') {
+            Reconnect();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text(WeekScheduleRequest?['message'])),
+            );
+          }
+        }
+      }
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Votre emploi du temps',
+          style: TextStyle(color: Colors.deepPurple),
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.deepPurple,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Bienvenue sur votre emploi du temps',
+        actions: [
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.today,
+                color: Colors.deepPurple,
+              ))
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.deepPurple,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Bienvenue sur votre emploi du temps',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  Padding(padding: EdgeInsets.all(4)),
+                  Text('IUT Périgueux',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(4)),
-                    Text('IUT Périgueux',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ))
-                  ],
-                ),
+                      ))
+                ],
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Text('Vue'),
-              ),
-              ListTile(
-                selected: !ViewTypeIsWeek,
-                leading: const Icon(Icons.calendar_view_day),
-                title: const Text('Jour'),
-                onTap: () {
-                  setState(() {
-                    ViewTypeIsWeek = false;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                selected: ViewTypeIsWeek,
-                leading: const Icon(Icons.calendar_view_week),
-                title: const Text('Semaine'),
-                onTap: () {
-                  setState(() {
-                    ViewTypeIsWeek = true;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Text("Plus d'options"),
-              ),
-              ListTile(
-                leading: const Icon(Icons.refresh),
-                title: const Text("Actualiser"),
-                onTap: (() {}),
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Paramètres'),
-                onTap: () {},
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Text("Compte"),
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text("Se deconnecter"),
-                onTap: (() {}),
-              ),
-            ],
-          ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text('Vue'),
+            ),
+            ListTile(
+              selected: !ViewTypeIsWeek,
+              leading: const Icon(Icons.calendar_view_day),
+              title: const Text('Jour'),
+              onTap: () {
+                setState(() {
+                  ViewTypeIsWeek = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              selected: ViewTypeIsWeek,
+              leading: const Icon(Icons.calendar_view_week),
+              title: const Text('Semaine'),
+              onTap: () {
+                setState(() {
+                  ViewTypeIsWeek = true;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text("Plus d'options"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.refresh),
+              title: const Text("Actualiser"),
+              onTap: (() {}),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Paramètres'),
+              onTap: () {},
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text("Compte"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Se deconnecter"),
+              onTap: (() {}),
+            ),
+          ],
         ),
-        body: calendar(),
       ),
+      body: ViewTypeIsWeek
+          ? WeekView(
+              controller: controller,
+              onPageChange: (date, page) {
+                PageChanged(date, page);
+              },
+            )
+          : DayView(
+              controller: controller,
+              onPageChange: (date, page) {
+                PageChanged(date, page);
+              },
+            ),
     );
   }
 }
