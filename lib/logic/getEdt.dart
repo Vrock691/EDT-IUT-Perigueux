@@ -159,7 +159,8 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
               'type': type,
               'name': name,
               'teacher': teacher,
-              'room': room
+              'room': room,
+              'color': element.attributes['bgcolor'].toString()
             });
             break;
           default:

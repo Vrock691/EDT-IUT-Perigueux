@@ -46,13 +46,16 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
 
     void clearAllEvents() {}
 
-    void addElementToCalendar(Map schedule) {
-      // here add elements
+    Color hexToColor(String code) {
+      return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+    }
 
+    void addElementToCalendar(Map schedule) {
       schedule.forEach((key, value) {
         for (var element in value['lessons']) {
           DateTime DayOfEvent = value['day'];
           final event = CalendarEventData(
+            color: hexToColor(element['color']),
             title: "${element['name']} - ${element['type']}",
             description: "${element['room']} | ${element['teacher']}",
             date: DayOfEvent,
@@ -60,14 +63,18 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                 hours: element['start'][0], minutes: element['start'][1])),
             endTime: DayOfEvent.add(
                 Duration(hours: element['end'][0], minutes: element['end'][1])),
-            event: "Event 111",
+            event: element.toString(),
           );
           CalendarControllerProvider.of(context).controller.add(event);
         }
       });
     }
 
-    addElementToCalendar(TODO['schedule']);
+    try {
+      addElementToCalendar(TODO['schedule']);
+    } catch (e) {
+      // no schedule
+    }
 
     void Reconnect() async {
       if (!ReconnectionProcessIsRunning) {
@@ -86,15 +93,16 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
             const SnackBar(
                 backgroundColor: Colors.deepPurple,
                 content: Text(
-                    'De nouveau en ligne, chargement de votre emploi du temps.')),
+                    'De nouveau connecté, chargement de votre emploi du temps...')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 backgroundColor: Colors.redAccent,
                 content: Text(
-                    'Erreur lors de la reconnexion, nouvel essai dans 30 secondes.')),
+                    'Erreur lors de la reconnexion, nouvel essai dans 5 secondes.')),
           );
+          await Future.delayed(const Duration(seconds: 5));
           ReconnectionProcessIsRunning = false;
           Reconnect();
         }
@@ -123,6 +131,37 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
           }
         }
       }
+    }
+
+    displayEventDetails(events, date) {
+      showModalBottomSheet(
+          context: context,
+          builder: ((context) => Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 32),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: const BoxDecoration(
+                            color: Colors.deepPurple,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text(
+                            events['title'],
+                            style: const TextStyle(fontSize: 25),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              )));
     }
 
     return Scaffold(
@@ -221,11 +260,20 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
       ),
       body: ViewTypeIsWeek
           ? WeekView(
+              weekDays: const [
+                WeekDays.monday,
+                WeekDays.tuesday,
+                WeekDays.wednesday,
+                WeekDays.thursday,
+                WeekDays.friday,
+                WeekDays.saturday,
+              ],
               heightPerMinute: 0.8,
               controller: controller,
               onPageChange: (date, page) {
                 PageChanged(date, page);
               },
+              onEventTap: (events, date) => {displayEventDetails(events, date)},
               headerStyle: const HeaderStyle(
                   decoration:
                       BoxDecoration(color: Color.fromARGB(71, 104, 58, 183))),
@@ -238,6 +286,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
               onPageChange: (date, page) {
                 PageChanged(date, page);
               },
+              onEventTap: (events, date) => {displayEventDetails(events, date)},
               headerStyle: const HeaderStyle(
                   decoration:
                       BoxDecoration(color: Color.fromARGB(71, 104, 58, 183))),
