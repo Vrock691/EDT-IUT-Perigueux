@@ -53,7 +53,8 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
         for (var element in value['lessons']) {
           DateTime DayOfEvent = value['day'];
           final event = CalendarEventData(
-            title: element['name'],
+            title: "${element['name']} - ${element['type']}",
+            description: "${element['room']} | ${element['teacher']}",
             date: DayOfEvent,
             startTime: DayOfEvent.add(Duration(
                 hours: element['start'][0], minutes: element['start'][1])),
@@ -65,6 +66,8 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
         }
       });
     }
+
+    addElementToCalendar(TODO['schedule']);
 
     void Reconnect() async {
       if (!ReconnectionProcessIsRunning) {
@@ -128,13 +131,14 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
           'Votre emploi du temps',
           style: TextStyle(color: Colors.deepPurple),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
               onPressed: () {},
               icon: const Icon(
                 Icons.today,
                 color: Colors.deepPurple,
-              ))
+              )),
         ],
       ),
       drawer: Drawer(
@@ -217,16 +221,26 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
       ),
       body: ViewTypeIsWeek
           ? WeekView(
+              heightPerMinute: 0.8,
               controller: controller,
               onPageChange: (date, page) {
                 PageChanged(date, page);
               },
+              headerStyle: const HeaderStyle(
+                  decoration:
+                      BoxDecoration(color: Color.fromARGB(71, 104, 58, 183))),
             )
           : DayView(
+              liveTimeIndicatorSettings:
+                  const HourIndicatorSettings(color: Colors.deepPurple),
+              heightPerMinute: 0.8,
               controller: controller,
               onPageChange: (date, page) {
                 PageChanged(date, page);
               },
+              headerStyle: const HeaderStyle(
+                  decoration:
+                      BoxDecoration(color: Color.fromARGB(71, 104, 58, 183))),
             ),
     );
   }

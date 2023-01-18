@@ -114,19 +114,44 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
             break;
           case 2:
             i++;
-            type = element.innerHtml;
+            type = element.innerHtml
+                .toString()
+                .replaceAll('<br>', '')
+                .replaceAll(' ', '')
+                .replaceAll('\n', '')
+                .replaceAll(' ', '')
+                .replaceAll('	', '');
             break;
           case 3:
             i++;
-            name = element.innerHtml;
+            name = element.innerHtml
+                .toString()
+                .replaceAll('<br>', '')
+                .replaceAll(' ', '')
+                .replaceAll('\n', '')
+                .replaceAll(' ', '')
+                .replaceAll('	', '');
             break;
           case 4:
             i++;
-            teacher = element.innerHtml;
+            teacher = element.innerHtml
+                .toString()
+                .replaceAll('<br>', '')
+                .replaceAll(' ', '')
+                .replaceAll('\n', '')
+                .replaceAll(' ', '')
+                .replaceAll('	', '');
+
             break;
           case 5:
             i = 0;
-            room = element.innerHtml;
+            room = element.innerHtml
+                .toString()
+                .replaceAll('<br>', '')
+                .replaceAll(' ', '')
+                .replaceAll('\n', '')
+                .replaceAll(' ', '')
+                .replaceAll('	', '');
 
             EDT[key]['lessons'].add({
               'start': start,
