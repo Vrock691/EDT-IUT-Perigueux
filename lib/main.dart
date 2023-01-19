@@ -10,6 +10,7 @@ import 'package:sattelysreader/logic/login.dart';
 import 'package:sattelysreader/screens/calendar.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -92,7 +93,11 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const Text(
-                      'Connexion à la plateforme',
+                      'IUT Périgueux',
+                      style: TextStyle(color: Colors.deepPurple, fontSize: 20),
+                    ),
+                    const Text(
+                      'Connexion à votre EDT',
                       style: TextStyle(color: Colors.deepPurple, fontSize: 25),
                     ),
                     const Padding(padding: EdgeInsets.all(8.0)),
@@ -278,33 +283,63 @@ class _LoginPageState extends State<LoginPage> {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
+          return ListView(
+            children: [
+              const Padding(padding: EdgeInsets.all(16)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
                   'Aide à la connexion',
                   style: TextStyle(color: Colors.deepPurple, fontSize: 25),
                 ),
-                Padding(padding: EdgeInsets.all(8)),
-                Text(
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
                   'Quels sont mes identifiants ?',
                   style: TextStyle(color: Colors.deepPurple, fontSize: 20),
                 ),
-                Padding(padding: EdgeInsets.all(8)),
-                Text(
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
                     "Vos identifiants sont les mêmes que ceux que vous entrez sur le site gpu.iut.bordeaux.fr, nous nous connectons à ce site avec ces informations pour obtenir votre emploi du temps."),
-                Padding(padding: EdgeInsets.all(8)),
-                Text(
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
                   "Je n'arrive pas à me connecter.",
                   style: TextStyle(color: Colors.deepPurple, fontSize: 20),
                 ),
-                Padding(padding: EdgeInsets.all(8)),
-                Text(
-                    "Avant toute choses, pensez à vérifier votre connexion internet, et à redemmarrer l'application ou votre appareil.\n\nDans un deuxième temps, essayez de vous connecter sur le site internet officiel Sattelys GPU pour vérifier si le problème ne vient pas d'eux. Ensuite vérifiez que vous avez bien rentré le bon identifiant et mot de passe.\n\nSi le problème persiste, vous pouvez nous contacter à l'adresse email suivante : vrock691@gmail.com. Ou sur instagram."),
-              ],
-            ),
+              ),
+              const Padding(padding: EdgeInsets.all(8)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                    "Avant toute choses, pensez à vérifier votre connexion internet, et à redemmarrer l'application ou votre appareil.\n\nDans un deuxième temps, essayez de vous connecter sur le site internet officiel Sattelys GPU pour vérifier si le problème ne vient pas d'eux. Ensuite vérifiez que vous avez bien rentré le bon identifiant et mot de passe.\n\nSi le problème persiste, vous pouvez nous contacter en cliquant sur le bouton ci-dessous ou nous écrire par mail à l'adresse sattelysreader@proton.me.\n"),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextButton(
+                    onPressed: () async {
+                      final Uri _url = Uri.parse(
+                          'mailto:sattelysreader@proton.me?subject=SATTELYSREADER%20LOGIN%20ERR');
+                      Future<void> _launchUrl() async {
+                        if (!await launchUrl(_url)) {
+                          throw 'Could not launch $_url';
+                        }
+                      }
+
+                      _launchUrl();
+                    },
+                    child: const Text('Contacter le support')),
+              ),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 16)),
+              const Text('')
+            ],
           );
         });
   }
