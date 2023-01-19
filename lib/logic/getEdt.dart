@@ -78,7 +78,9 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
       var i = 0;
 
       var start;
+      var startString;
       var end;
+      var endString;
       var type;
       var name;
       var teacher;
@@ -88,6 +90,7 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
         switch (i) {
           case 0:
             i++;
+            startString = element.innerHtml;
             var hour = element.innerHtml
                 .toString()
                 .substring(0, element.innerHtml.toString().length - 2)
@@ -101,6 +104,7 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
             break;
           case 1:
             i++;
+            endString = element.innerHtml;
             var hour = element.innerHtml
                 .toString()
                 .substring(0, element.innerHtml.toString().length - 2)
@@ -155,7 +159,9 @@ Future<Map<String, dynamic>?> getWeekSchedule(PHPSESSID, weekNumber) async {
 
             EDT[key]['lessons'].add({
               'start': start,
+              'startString': startString,
               'end': end,
+              'endString': endString,
               'type': type,
               'name': name,
               'teacher': teacher,

@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:sattelysreader/logic/getEdt.dart';
 import 'package:sattelysreader/logic/getWeekNumber.dart';
@@ -34,6 +36,8 @@ class CalendarViewStateful extends StatefulWidget {
 class CalendarViewStatefulState extends State<CalendarViewStateful> {
   bool ViewTypeIsWeek = true;
   var WeekLoaded = [];
+  final _calendarDayViewKey = GlobalKey<DayViewState>();
+  final _calendarWeekViewKey = GlobalKey<WeekViewState>();
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +48,37 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
     String PHPSESSID = TODO['PHPSESSID'].toString();
     bool ReconnectionProcessIsRunning = false;
 
-    void clearAllEvents() {}
+    void clearAllEvents() {
+      CalendarControllerProvider.of(context)
+          .controller
+          .events
+          .forEach((element) {
+        CalendarControllerProvider.of(context).controller.remove(element);
+      });
+    }
 
     Color hexToColor(String code) {
-      return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+      Color color;
+
+      if (code == '' || code == '&nbsp;') {
+        color = Colors.deepPurple;
+      } else {
+        color = Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+      }
+
+      return color;
+    }
+
+    String Content(String content) {
+      String contentFinal = '';
+
+      if (content == '' || content == '&nbsp;') {
+        contentFinal = 'Non renseigné(e)';
+      } else {
+        contentFinal = content;
+      }
+
+      return contentFinal;
     }
 
     void addElementToCalendar(Map schedule) {
@@ -56,14 +87,16 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
           DateTime DayOfEvent = value['day'];
           final event = CalendarEventData(
             color: hexToColor(element['color']),
-            title: "${element['name']} - ${element['type']}",
-            description: "${element['room']} | ${element['teacher']}",
+            title:
+                "${Content(element['name'].toString())} - ${Content(element['type'].toString())}",
+            description:
+                "${Content(element['room'].toString())} | ${Content(element['teacher'].toString())}",
             date: DayOfEvent,
             startTime: DayOfEvent.add(Duration(
                 hours: element['start'][0], minutes: element['start'][1])),
             endTime: DayOfEvent.add(
                 Duration(hours: element['end'][0], minutes: element['end'][1])),
-            event: element.toString(),
+            event: jsonEncode(element).toString(),
           );
           CalendarControllerProvider.of(context).controller.add(event);
         }
@@ -95,6 +128,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                 content: Text(
                     'De nouveau connecté, chargement de votre emploi du temps...')),
           );
+          clearAllEvents();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -133,33 +167,72 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
       }
     }
 
-    displayEventDetails(events, date) {
+    displayEventDetails(events, DateTime date) {
+      Map event = jsonDecode(events[0].toJson()['event'].toString());
+
       showModalBottomSheet(
           context: context,
           builder: ((context) => Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 32),
+                    padding: const EdgeInsets.all(30),
                     child: Row(
                       children: [
                         Container(
                           width: 30,
                           height: 30,
-                          decoration: const BoxDecoration(
-                            color: Colors.deepPurple,
+                          decoration: BoxDecoration(
+                            color: hexToColor(event['color']),
                             shape: BoxShape.circle,
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(left: 16),
+                          padding: const EdgeInsets.only(left: 25),
                           child: Text(
-                            events['title'],
+                            Content(event['name']),
                             style: const TextStyle(fontSize: 25),
                           ),
-                        )
+                        ),
                       ],
                     ),
-                  )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                        subtitle: const Text('Date'),
+                        leading: const Icon(Icons.calendar_today),
+                        title: Text(
+                            '${Content(date.day.toString())}-${Content(date.formatted)}')),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                        subtitle: const Text('Horaire'),
+                        leading: const Icon(Icons.timelapse),
+                        title: Text(
+                            '${Content(event['startString'])} - ${Content(event['endString'])}')),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                        subtitle: const Text('Type'),
+                        leading: const Icon(Icons.school),
+                        title: Text(Content(event['type'].toString()))),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                        subtitle: const Text('Professeur'),
+                        leading: const Icon(Icons.person),
+                        title: Text(Content(event['teacher'].toString()))),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                        subtitle: const Text('Salle'),
+                        leading: const Icon(Icons.room),
+                        title: Text(Content(event['room'].toString()))),
+                  ),
                 ],
               )));
     }
@@ -173,7 +246,15 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
         centerTitle: true,
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                if (ViewTypeIsWeek) {
+                  _calendarWeekViewKey.currentState
+                      ?.animateToWeek(DateTime.now());
+                } else {
+                  _calendarDayViewKey.currentState
+                      ?.animateToDate(DateTime.now());
+                }
+              },
               icon: const Icon(
                 Icons.today,
                 color: Colors.deepPurple,
@@ -260,6 +341,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
       ),
       body: ViewTypeIsWeek
           ? WeekView(
+              key: _calendarWeekViewKey,
               weekDays: const [
                 WeekDays.monday,
                 WeekDays.tuesday,
@@ -279,6 +361,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                       BoxDecoration(color: Color.fromARGB(71, 104, 58, 183))),
             )
           : DayView(
+              key: _calendarDayViewKey,
               liveTimeIndicatorSettings:
                   const HourIndicatorSettings(color: Colors.deepPurple),
               heightPerMinute: 0.8,
