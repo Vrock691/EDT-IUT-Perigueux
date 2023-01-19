@@ -9,6 +9,8 @@ import 'package:sattelysreader/logic/login.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../main.dart';
+
 class Todo {
   final Map<dynamic, dynamic> EDT;
   const Todo(this.EDT);
@@ -363,7 +365,12 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Se deconnecter"),
-              onTap: (() {}),
+              onTap: (() {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyApp()),
+                    ModalRoute.withName("/Login"));
+              }),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
