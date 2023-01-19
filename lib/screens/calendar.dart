@@ -320,7 +320,40 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
             ListTile(
               leading: const Icon(Icons.refresh),
               title: const Text("Actualiser"),
-              onTap: (() {}),
+              onTap: (() async {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      backgroundColor: Colors.deepPurple,
+                      content: Text('Actualisation...')),
+                );
+                clearAllEvents();
+                if (ViewTypeIsWeek) {
+                  _calendarWeekViewKey.currentState
+                      ?.animateToWeek(DateTime.now());
+                } else {
+                  _calendarDayViewKey.currentState
+                      ?.animateToDate(DateTime.now());
+                }
+                var WeekScheduleRequest = await getWeekSchedule(
+                    PHPSESSID, getWeekNumber(DateTime.now()));
+
+                if (WeekScheduleRequest?['success']) {
+                  if (WeekScheduleRequest?['schedule'] != null) {
+                    addElementToCalendar(WeekScheduleRequest?['schedule']);
+                  }
+                } else {
+                  if (WeekScheduleRequest?['code'] == 'disconnected') {
+                    Reconnect();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          backgroundColor: Colors.redAccent,
+                          content: Text(WeekScheduleRequest?['message'])),
+                    );
+                  }
+                }
+              }),
             ),
             ListTile(
               leading: const Icon(Icons.settings),
