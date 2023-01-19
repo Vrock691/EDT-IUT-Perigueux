@@ -38,6 +38,7 @@ dependencies:
   http: ^0.13.5
   html: ^0.15.1
   calendar_view: ^1.0.2
+  url_launcher: ^6.1.7
 
 dev_dependencies:
   flutter_test:

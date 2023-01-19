@@ -7,6 +7,7 @@ import 'package:sattelysreader/logic/getEdt.dart';
 import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:calendar_view/calendar_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Todo {
   final Map<dynamic, dynamic> EDT;
@@ -171,66 +172,65 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
       Map event = jsonDecode(events[0].toJson()['event'].toString());
 
       showModalBottomSheet(
+          isScrollControlled: false,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+          isDismissible: true,
           context: context,
           builder: ((context) => Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(30),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: hexToColor(event['color']),
-                            shape: BoxShape.circle,
-                          ),
+                    padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+                    child: ListTile(
+                        leading: Icon(
+                          Icons.class_,
+                          color: hexToColor(event['color'].toString()),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 25),
-                          child: Text(
-                            Content(event['name']),
-                            style: const TextStyle(fontSize: 25),
-                          ),
-                        ),
-                      ],
-                    ),
+                        title: Text(
+                          Content(event['name']),
+                          style: const TextStyle(fontSize: 20),
+                        )),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ListTile(
                         subtitle: const Text('Date'),
-                        leading: const Icon(Icons.calendar_today),
+                        leading: Icon(Icons.calendar_today,
+                            color: hexToColor(event['color'].toString())),
                         title: Text(
                             '${Content(date.day.toString())}-${Content(date.formatted)}')),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ListTile(
                         subtitle: const Text('Horaire'),
-                        leading: const Icon(Icons.timelapse),
+                        leading: Icon(Icons.timelapse,
+                            color: hexToColor(event['color'].toString())),
                         title: Text(
                             '${Content(event['startString'])} - ${Content(event['endString'])}')),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ListTile(
                         subtitle: const Text('Type'),
-                        leading: const Icon(Icons.school),
+                        leading: Icon(Icons.school,
+                            color: hexToColor(event['color'].toString())),
                         title: Text(Content(event['type'].toString()))),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ListTile(
                         subtitle: const Text('Professeur'),
-                        leading: const Icon(Icons.person),
+                        leading: Icon(Icons.person,
+                            color: hexToColor(event['color'].toString())),
                         title: Text(Content(event['teacher'].toString()))),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ListTile(
                         subtitle: const Text('Salle'),
-                        leading: const Icon(Icons.room),
+                        leading: Icon(Icons.room,
+                            color: hexToColor(event['color'].toString())),
                         title: Text(Content(event['room'].toString()))),
                   ),
                 ],
@@ -319,7 +319,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
             ),
             ListTile(
               leading: const Icon(Icons.refresh),
-              title: const Text("Actualiser"),
+              title: const Text("Recharger EDT"),
               onTap: (() async {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -355,19 +355,50 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                 }
               }),
             ),
-            ListTile(
+            /* ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Paramètres'),
               onTap: () {},
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: Text("Compte"),
-            ),
+            ), */
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Se deconnecter"),
               onTap: (() {}),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text("Autres applications"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.calculate),
+              title: const Text("Ma note sur vingt"),
+              onTap: (() async {
+                Uri _url = Uri.parse('https://manotesurvingt.web.app/');
+
+                Future<void> _launchUrl() async {
+                  if (!await launchUrl(_url)) {
+                    throw 'Impossible de lancer le lien $_url';
+                  }
+                }
+
+                _launchUrl();
+              }),
+            ),
+            ListTile(
+              leading: const Icon(Icons.percent),
+              title: const Text("Pourcentage"),
+              onTap: (() async {
+                Uri _url = Uri.parse(
+                    'https://github.com/Vrock691/pourcentage/releases');
+
+                Future<void> _launchUrl() async {
+                  if (!await launchUrl(_url)) {
+                    throw 'Impossible de lancer le lien $_url';
+                  }
+                }
+
+                _launchUrl();
+              }),
             ),
           ],
         ),
