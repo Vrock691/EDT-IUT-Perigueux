@@ -9,6 +9,7 @@ import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:sattelysreader/screens/calendar.dart';
 import 'package:calendar_view/calendar_view.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,10 +51,23 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool pswinvisible = true;
   bool isButtonEnabled = true;
+  final storage = const FlutterSecureStorage();
+
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   String req = "";
   Map Edt = {};
+
+  Future<void> _readAllFromStoage() async {
+    usernameController.text = await storage.read(key: 'login') ?? '';
+    passwordController.text = await storage.read(key: 'password') ?? '';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _readAllFromStoage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          style: TextStyle(color: Colors.deepPurple),
+          style: const TextStyle(color: Colors.deepPurple),
         ),
         centerTitle: true,
       ),
@@ -194,6 +208,9 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           isButtonEnabled = true;
         });
+
+        await storage.write(key: 'login', value: usernameController.text);
+        await storage.write(key: 'password', value: passwordController.text);
 
         Edt['credentials'] = {
           'login': usernameController.text,
