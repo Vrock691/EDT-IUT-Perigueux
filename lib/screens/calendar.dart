@@ -38,6 +38,8 @@ class CalendarViewStateful extends StatefulWidget {
 
 class CalendarViewStatefulState extends State<CalendarViewStateful> {
   bool ViewTypeIsWeek = true;
+  bool lalane = false;
+  bool chatemmaback = false;
   var WeekLoaded = [];
   final _calendarDayViewKey = GlobalKey<DayViewState>();
   final _calendarWeekViewKey = GlobalKey<WeekViewState>();
@@ -239,6 +241,28 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
               )));
     }
 
+    Widget LalaneWidget() {
+      if (lalane) {
+        return ListTile(
+          leading: const Icon(Icons.thermostat),
+          title: const Text("La thermo"),
+          onTap: (() async {
+            Uri _url = Uri.parse('https://www.youtube.com/watch?v=n_pbxHnw4zY');
+
+            Future<void> _launchUrl() async {
+              if (!await launchUrl(_url)) {
+                throw 'Impossible de lancer le lien $_url';
+              }
+            }
+
+            _launchUrl();
+          }),
+        );
+      } else {
+        return const Padding(padding: EdgeInsets.all(0));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -268,8 +292,13 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.deepPurple,
+              decoration: BoxDecoration(
+                image: chatemmaback
+                    ? const DecorationImage(
+                        image: AssetImage("assets/chatemma.jpg"),
+                        fit: BoxFit.cover)
+                    : null,
+                color: !chatemmaback ? Colors.deepPurple : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,6 +331,11 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                   ViewTypeIsWeek = false;
                 });
                 Navigator.pop(context);
+              },
+              onLongPress: () {
+                setState(() {
+                  lalane = true;
+                });
               },
             ),
             ListTile(
@@ -357,11 +391,6 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                 }
               }),
             ),
-            /* ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Paramètres'),
-              onTap: () {},
-            ), */
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Se deconnecter"),
@@ -372,6 +401,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                     ModalRoute.withName("/Login"));
               }),
             ),
+            LalaneWidget(),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Text("Autres applications"),
@@ -419,12 +449,20 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                     context: context,
                     applicationName: 'Sattelys Reader',
                     applicationVersion: "1.0 beta",
-                    applicationIcon: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        "assets/logo.jpg",
-                        width: 60,
-                        height: 60,
+                    applicationIcon: IconButton(
+                      padding: const EdgeInsets.all(0),
+                      onPressed: (() {
+                        setState(() {
+                          chatemmaback = true;
+                        });
+                      }),
+                      icon: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          "assets/logo.jpg",
+                          width: 60,
+                          height: 60,
+                        ),
                       ),
                     ),
                     children: [
@@ -438,7 +476,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
               title: const Text("Contacter le support"),
               onTap: (() async {
                 final Uri _url = Uri.parse(
-                    'mailto:sattelysreader@proton.me?subject=SATTELYSREADER%20LOGIN%20ERR');
+                    'mailto:sattelysreader@proton.me?subject=SATTELYSREADER%20ERR');
                 Future<void> _launchUrl() async {
                   if (!await launchUrl(_url)) {
                     throw 'Could not launch $_url';
