@@ -1,4 +1,4 @@
-package com.example.sattelysreader
+package fr.vrock691.sattelysreader.iutperigueux
 
 import io.flutter.embedding.android.FlutterActivity
 

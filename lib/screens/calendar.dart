@@ -459,7 +459,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                       icon: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
                         child: Image.asset(
-                          "assets/logo.jpg",
+                          "assets/logo.png",
                           width: 60,
                           height: 60,
                         ),
