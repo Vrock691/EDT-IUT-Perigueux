@@ -448,7 +448,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                 showAboutDialog(
                     context: context,
                     applicationName: 'Sattelys Reader',
-                    applicationVersion: "1.0 beta",
+                    applicationVersion: "1.0",
                     applicationIcon: IconButton(
                       padding: const EdgeInsets.all(0),
                       onPressed: (() {
