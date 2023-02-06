@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
 import 'dart:developer';
-import 'dart:ffi';
 import 'package:html/parser.dart' show parse;
 import 'package:flutter/material.dart';
 import 'package:sattelysreader/logic/getEdt.dart';

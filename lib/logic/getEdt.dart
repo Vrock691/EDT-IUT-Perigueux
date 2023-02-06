@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 
 import './request.dart';
 import 'package:html/parser.dart';
