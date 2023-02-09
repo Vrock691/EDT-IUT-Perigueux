@@ -41,6 +41,7 @@ dependencies:
   url_launcher: ^6.1.7
   flutter_secure_storage: ^7.0.1
   flutter_launcher_icons: ^0.11.0
+  share_plus: ^6.3.1
 
 flutter_icons:
   android: true
