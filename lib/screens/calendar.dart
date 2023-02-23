@@ -47,15 +47,6 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
 
   final storage = const FlutterSecureStorage();
 
-  Future<void> _readAllFromStoage() async {
-    var chatemmabackstring = await storage.read(key: 'chatemmaback') ?? '';
-    if (chatemmabackstring == 'true') {
-      chatemmaback = true;
-    } else {
-      chatemmaback = false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final TODO = widget.todo;
@@ -64,6 +55,21 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
         CalendarControllerProvider.of(context).controller;
     String PHPSESSID = TODO['PHPSESSID'].toString();
     bool ReconnectionProcessIsRunning = false;
+
+    Future<void> _readAllFromStoage() async {
+      var chatemmabackstring = await storage.read(key: 'chatemmaback') ?? '';
+      if (chatemmabackstring == 'true') {
+        setState(() {
+          chatemmaback = true;
+        });
+      } else {
+        setState(() {
+          chatemmaback = false;
+        });
+      }
+    }
+
+    _readAllFromStoage();
 
     void clearAllEvents() {
       CalendarControllerProvider.of(context)
@@ -463,12 +469,13 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                     applicationVersion: "1.0",
                     applicationIcon: IconButton(
                       padding: const EdgeInsets.all(0),
-                      onPressed: (() {
-                        setState(() async {
-                          await storage.write(
-                              key: 'chatemmaback', value: 'true');
-                          chatemmaback = true;
+                      onPressed: (() async {
+                        setState(() {
+                          chatemmaback = !chatemmaback;
                         });
+                        await storage.write(
+                            key: 'chatemmaback',
+                            value: chatemmaback.toString());
                       }),
                       icon: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
