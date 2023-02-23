@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 // ignore: non_constant_identifier_names
 makePostRequest(body, PHPSESSID) async {
@@ -13,6 +15,11 @@ makePostRequest(body, PHPSESSID) async {
 
   /* Now we can make the request */
   try {
+    final ioc = HttpClient();
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+
     var response = await http.post(
         Uri.parse('https://gpu.perigueux.u-bordeaux.fr/mobile/index.php'),
         headers: {
@@ -46,6 +53,11 @@ makePostRequest(body, PHPSESSID) async {
 
 makeGetRequest(path) async {
   try {
+    final ioc = HttpClient();
+    ioc.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+    final http = IOClient(ioc);
+
     var response = await http.post(
       Uri.parse('https://gpu.perigueux.u-bordeaux.fr/mobile/index.php'),
       headers: {
