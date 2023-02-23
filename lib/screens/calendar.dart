@@ -8,6 +8,7 @@ import 'package:sattelysreader/logic/getWeekNumber.dart';
 import 'package:sattelysreader/logic/login.dart';
 import 'package:calendar_view/calendar_view.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../main.dart';
 
@@ -44,6 +45,8 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
   final _calendarDayViewKey = GlobalKey<DayViewState>();
   final _calendarWeekViewKey = GlobalKey<WeekViewState>();
 
+  final storage = const FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context) {
     final TODO = widget.todo;
@@ -52,6 +55,21 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
         CalendarControllerProvider.of(context).controller;
     String PHPSESSID = TODO['PHPSESSID'].toString();
     bool ReconnectionProcessIsRunning = false;
+
+    Future<void> _readAllFromStoage() async {
+      var chatemmabackstring = await storage.read(key: 'chatemmaback') ?? '';
+      if (chatemmabackstring == 'true') {
+        setState(() {
+          chatemmaback = true;
+        });
+      } else {
+        setState(() {
+          chatemmaback = false;
+        });
+      }
+    }
+
+    _readAllFromStoage();
 
     void clearAllEvents() {
       CalendarControllerProvider.of(context)
@@ -451,10 +469,13 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                     applicationVersion: "1.0",
                     applicationIcon: IconButton(
                       padding: const EdgeInsets.all(0),
-                      onPressed: (() {
+                      onPressed: (() async {
                         setState(() {
-                          chatemmaback = true;
+                          chatemmaback = !chatemmaback;
                         });
+                        await storage.write(
+                            key: 'chatemmaback',
+                            value: chatemmaback.toString());
                       }),
                       icon: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
@@ -467,7 +488,7 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
                     ),
                     children: [
                       const Text(
-                          "Merci d'utiliser cette application ! N'hésitez pas à aller voir mes autres projets cités sur mon site vrock691.web.app.\n\nCette application n'est pas affiliée à votre IUT ou à sattelys.\n\nJe remercie ma coquillette de m'avoir lancé dans ce projet !\n\nThomas j'ai utilisé du violet comme tu m'as dit hehe.\n\nPour toute suggestions ou problèmes, n'hésitez pas à me contacter en cliquant sur 'contacter le support' dans la barre latérale.\n\nBonne chance à ceux qui chercheront les easter eggs !\n\nApplication codée avec ♥ par Valentin.")
+                          "Merci d'utiliser cette application ! N'hésitez pas à aller voir mes autres projets cités sur mon site vrock691.web.app.\n\nCette application n'est pas affiliée à votre IUT ou à sattelys.\n\nJe remercie ma coquillette de m'avoir lancé dans ce projet !\n\nThomas j'ai utilisé du violet comme tu m'as dit hehe.\n\nPour toute suggestions ou problèmes, n'hésitez pas à me contacter en cliquant sur 'contacter le support' dans la barre latérale. N'hésitez pas non plus à noter l'appli sur le play store et à rejoindre le programme beta pour tester les nouvelles fonctions en avance !\n\nBonne chance à ceux qui chercheront les easter eggs !\n\nApplication codée avec ♥ par Valentin.")
                     ]);
               }),
             ),
@@ -477,6 +498,21 @@ class CalendarViewStatefulState extends State<CalendarViewStateful> {
               onTap: (() async {
                 final Uri _url = Uri.parse(
                     'mailto:sattelysreader@proton.me?subject=SATTELYSREADER%20ERR');
+                Future<void> _launchUrl() async {
+                  if (!await launchUrl(_url)) {
+                    throw 'Could not launch $_url';
+                  }
+                }
+
+                _launchUrl();
+              }),
+            ),
+            ListTile(
+              leading: const Icon(Icons.star),
+              title: const Text("Noter sur Play Store"),
+              onTap: (() async {
+                final Uri _url = Uri.parse(
+                    'https://play.google.com/store/apps/details?id=fr.vrock691.sattelysreader.iutperigueux');
                 Future<void> _launchUrl() async {
                   if (!await launchUrl(_url)) {
                     throw 'Could not launch $_url';
