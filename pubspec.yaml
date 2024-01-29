@@ -39,9 +39,9 @@ dependencies:
   html: ^0.15.1
   calendar_view: ^1.0.2
   url_launcher: ^6.1.7
-  flutter_secure_storage: ^7.0.1
-  flutter_launcher_icons: ^0.11.0
-  share_plus: ^6.3.1
+  flutter_secure_storage: ^8.1.0
+  flutter_launcher_icons: ^0.13.1
+  share_plus: ^7.2.1
 
 flutter_icons:
   android: true
