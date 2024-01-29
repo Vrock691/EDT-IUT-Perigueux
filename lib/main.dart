@@ -228,7 +228,20 @@ class _LoginPageState extends State<LoginPage> {
           the first week available */
 
         var now = DateTime.now();
-        var weekNumber = getWeekNumber(now);
+        int getweekNumber(DateTime date) {
+          final startOfYear = DateTime(date.year, 1, 1, 0, 0);
+          final firstMonday = startOfYear.weekday;
+          final daysInFirstWeek = 8 - firstMonday;
+          final diff = date.difference(startOfYear);
+          var weeks = ((diff.inDays - daysInFirstWeek) / 7).ceil();
+          // It might differ how you want to treat the first week
+          if (daysInFirstWeek > 3) {
+            weeks += 1;
+          }
+          return weeks + 1;
+        }
+
+        var weekNumber = getweekNumber(now);
         var reqEdt;
 
         if (Edt['weeks'].indexOf(weekNumber.toString) != null) {
